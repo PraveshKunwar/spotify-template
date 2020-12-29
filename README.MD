@@ -26,10 +26,10 @@ For this project, we wil call folder-name "spotify".
 cd folder-name
 ```
 
-- To make requests, we will be using Axios. This will be demonstrated later. In the folder we navigated to, make sure to install Axios.
+- To make requests, we will be using node-fetch. This will be demonstrated later. In the folder we navigated to, make sure to install node-fetch.
 
 ```js
-npm install axios
+npm install node-fetch
 ```
 
 > Note: We are only making requests, displaying data on webpages will not be shown.
@@ -346,3 +346,190 @@ I am authenticated!!
 Congrats, you have now completed the authentication part of the project! Lets keep rolling!
 
 # How to get data?
+
+## Lets talk about how to get data now!
+
+### Step 1: Where can I find data to get?
+
+Head over to this [link](https://developer.spotify.com/documentation/web-api/reference/).
+
+![sc5](./sc5.png)
+
+You might notice this to the left! Welcome! This is where the endpoints, or data we can recieve from Spotify. Now we just make requests to these endpoints. In this particular tutorial, we will be making a request to the "Playlists" endpoint, to get users playlists and display them!
+
+- Click on playlists.
+
+![sc6](./sc6.png)
+
+You might notice that you see a bunch of endpoints. Spotify does a good job of listing what each endpoint is, and what they can do. Specifically, we want to get users playlists, so we will make a request to /v1/me/playlists. Lets click on that link.
+
+![sc7](./sc7.png)
+
+Perfect. This is exactly what we want. Notice the header fields. We need to make a request with the authorization header, specifically with the access token. Lets do that now.
+
+- Navigate back to App.js within the src folder.
+
+Here is what it should look like now:
+
+```js
+import { accessUrl } from "./Spotify";
+import { SpotifyToken } from "./Spotify";
+import { useState, useEffect } from "react";
+
+const App = () => {
+  const [token, setToken] = useState(" ");
+  useEffect(() => {
+    const hash = SpotifyToken();
+    window.location.hash = "";
+    const _token = hash.access_token;
+    if (_token) {
+      setToken(_token);
+    }
+  }, []);
+  return (
+    <div className="app">
+      {token === " " ? (
+        <div className="login">
+          <a href={accessUrl}>Login</a>
+        </div>
+      ) : (
+        <div className="welcome">
+          <p>I am authenticated!!</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;
+```
+
+Lets change that.
+
+- Lets start off by going to the useEffect component. This is the perfect place to make the request. Make sure you have node-fetch installed.
+
+```js
+npm i node-fetch
+// install if you haven't already
+```
+
+Ok, lets get users playlists now!
+
+- Create a new component called Playlists.js. We are going to import it in our app. Lets just work on getting Playlists.js coded and ready!
+
+Playlists.js :
+
+```js
+import { useEffect, useState } from "react";
+import fetch from "node-fetch";
+
+const Playlists = (props) => {
+  const [playlistItems, setPlaylistItems] = useState([]);
+  useEffect(() => {
+    fetch("https://api.spotify.com/v1/me/playlists?limit=50", {
+      headers: {
+        Authorization: "Bearer " + props.token,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setPlaylistItems(data.items);
+      });
+  }, []);
+  return <div className="playlists">Playlists time!</div>;
+};
+
+export default Playlists;
+```
+
+- Yes! We have made the request to spotify, to this endpoint. We also added ?limit=50 to get a max of 50 playlists at a time. We also created a playlistItems state, and we set that equal to data.items, which if you see here:
+
+![sc8](./sc8.png)
+
+Is equal to the playlists we have on the user that was authenticated. There's a lot more data packed into it, which we will get into now!
+
+- Lets get all the images of the playlist. We are going to use Array.map() for this purpose.
+
+Updated code:
+
+```js
+import { useEffect, useState } from "react";
+import fetch from "node-fetch";
+
+const Playlists = (props) => {
+  const [playlistItems, setPlaylistItems] = useState([]);
+  useEffect(() => {
+    fetch("https://api.spotify.com/v1/me/playlists?limit=50", {
+      headers: {
+        Authorization: "Bearer " + props.token,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        data.items.map((items) => {
+          return console.log(items.images[0]);
+        });
+        setPlaylistItems(data.items);
+      });
+  }, []);
+  return (
+    <div className="playlists">
+      Playlists time!
+      {playlistItems.map((playlists) => {
+        return (
+          <div className="image-track">
+            <p>{playlists.name}</p>
+            <img
+              width="300"
+              height="300"
+              src={playlists.images[0].url}
+              alt="playlist"
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+export default Playlists;
+```
+
+### Result!
+
+![gif](./gif.gif)
+Don't forget to import Playlists from App.js!
+
+App.js
+
+```js
+//put import statement at top of App.js
+import Playlists from ./Playlists.js
+
+
+//inside return statement of App.js
+return (
+    <div className="app">
+      {token === " " ? (
+        <div className="login">
+          <a href={accessUrl}>Login</a>
+        </div>
+      ) : (
+        <div className="welcome">
+          <p>I am authenticated!!</p>
+          <Playlists token={token} />
+        </div>
+      )}
+    </div>
+  );
+```
+
+> Note: We will not be styling the playlists, this was just to show you how to work with API endpoints.
+
+- There you go. Now you know how to start with Spotify's API.
+
+# Help / Q&A
+
+- For all help, please contact me at praveshk04@outlook.com! This was a short tutorial, but I hope it got you started! If you would like a video on this, I will be making one soon! Thank you for reading this tutorial.
