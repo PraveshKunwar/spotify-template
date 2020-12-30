@@ -500,6 +500,7 @@ export default Playlists;
 ### Result!
 
 ![gif](./gif.gif)
+
 Don't forget to import Playlists from App.js!
 
 App.js
